@@ -1,0 +1,333 @@
+<EquityHomeScreen>:
+    GridLayout:
+        rows: 1
+        padding: 15, 100
+        spacing: 100
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+
+            TitleTextBase:
+                text: 'Simulation'
+                size_hint_y: 0.1
+
+            GridLayout:
+                cols: 1
+                spacing: 10
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 10
+
+                    MenuTileButton:
+                        background_color: C(hex_primary)
+                        text: '[font=Modern Pictograms][size=80]}[/size][/font]\nPowerplant Replacement'
+                        on_release: root.manager.current = 'peaker_rep_wizard'
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+
+            TitleTextBase:
+                text: 'Analysis'
+                size_hint_y: 0.1
+
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+
+                MenuTileButton:
+                    background_color: C(hex_secondary)
+                    text: '[font=Modern Pictograms][size=80]8[/size][/font]\nResults Viewer'
+                    on_release: root.manager.current = 'equity_results_viewer'
+
+
+<WizardHeaderDesc@TitleTextBase>:
+    size_hint_y: 0.1
+
+<WizardBodyText@BodyTextBase>:
+    markup: True
+    text_size: self.size
+    valign: 'top'
+    halign: 'justify'
+
+<WizardISOTileButton>:
+    font_size: large_font
+    size_hint: (0.30, 0.30)
+    opacity: 0
+    allow_no_selection: False
+
+<WizardRevToggleButton>:
+    size_hint: (0.30, 0.30)
+    font_size: large_font
+    group: 'market_formulation'
+    allow_no_selection: False
+    opacity: 0
+
+<WizardDeviceTileButton>:
+    font_size: stnd_font if self.height < 150 else large_font
+    group: 'storage_device'
+    allow_no_selection: False
+
+<WizardDeviceParameterWidget>:
+    rows: 6
+    spacing: 10
+
+<WizardDeviceParameterRow>:
+    cols: 3
+    spacing: 5
+
+    name: name
+    param_slider: param_slider
+    text_input: text_input
+
+    WizardBodyText:
+        id: name
+        size_hint_x: 0.55
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    Slider:
+        id: param_slider
+        size_hint_x: 0.35
+        min: 0
+        max: 100
+        value_track: True
+        value_track_color: C(hex_secondary)
+        disabled: True
+
+    ParamTextInput:
+        id: text_input
+        size_hint_x: 0.10
+        text: '{0:.1f}'.format(root.param_slider.value)
+        on_focus: root._validate_input()
+        disabled: True
+
+<ParamTextInput>:
+    multiline: False
+    color: C(hex_black)
+    font_size: stnd_font
+    input_filter: 'float'
+    write_tab: False
+    on_focus: self.select_all() if self.focus else self.cancel_selection() 
+
+<WizardDataTileButton>:
+    font_size: stnd_font if self.height < 150 else large_font
+    group: 'hist_data'
+    allow_no_selection: False
+
+
+<WizardSummaryBubble>:
+    cat_title: cat_title
+    body: body
+
+    orientation: 'vertical'
+    padding: 10
+    spacing: 5
+    size_hint_y: None
+    size_hint_x: None
+
+    #    canvas.before:
+    #        Color:
+    #            rgb: C('#f3f2f1')
+    #            a: 1.0
+    #        RoundedRectangle:
+    #            pos: self.pos
+    #            size: self.size
+
+    Label:
+        id: cat_title
+        size_hint: (None, None)
+        font_size: large_font
+        size: self.texture_size
+        #text_size: self.size
+        #height: self.texture_size[1]
+        markup: True
+        bold: True
+        color: C(hex_black)
+
+    Label:
+        id: body
+        size_hint: (None, None)
+        font_size: stnd_font
+        size: self.texture_size
+        #text_size: self.size
+        #height: self.texture_size[1]
+        halign: 'left'
+        markup: True
+        color: C(hex_black)
+
+<AboutSelectionSummary>:
+    lab_abt_selsum: lab_abt_selsum
+    #img_abt_selsum: img_abt_selsum
+    title_abt_selsum: title_abt_selsum
+    auto_dismiss: False
+    size_hint: (0.8, 0.8)
+    BoxLayout:
+#        size_hint: 0.9, 0.9
+        spacing: 10
+        padding: (10, 5)
+        orientation: 'vertical'
+
+        canvas.before:
+            Color:
+                rgb: C(hex_cloud_dancer)
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        WizardHeaderDesc:
+            id: title_abt_selsum
+            size_hint_y: 0.23
+            on_ref_press: root.openwebbrowser()
+            markup: True
+
+        # ImageButton:
+        #     size_hint: 0.8,0.23
+        #     pos_hint: {'center_x': 0.5, 'center_y': 0.75}
+        #     id: img_abt_selsum
+        #     on_press: root.openwebbrowser()
+
+        Label:
+            id: lab_abt_selsum
+#            pos_hint:{"top":1}
+            size_hint: (0.9, 0.68)
+#            text_size: self.width, None
+            text_size: self.size
+            height: self.texture_size[1]
+            font_size: stnd_font
+            size: self.texture_size
+            halign: 'left'
+            valign: 'top'
+#                markup: True
+            color: C(hex_black)
+
+        StackLayout:
+            orientation: 'rl-tb'
+            spacing: 10
+            size_hint_y: 0.09
+
+            Button:
+                #background_color: C(hex_warm_gray)
+                text: 'Got it'
+                font_size: stnd_font
+                size_hint_x: 0.25
+                on_release: root.dismiss()
+
+
+<ValuationWizardSelectionSummary>:
+    top_desc: top_desc
+    content: content
+    isolabel: isolabel
+    pcnodelabel: pcnodelabel
+    histdatlabel: histdatlabel
+    esdevlabel: esdevlabel
+    revstreamlabel: revstreamlabel
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            id: top_desc
+            text: 'Summary of selections'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.85
+            id: content
+            spacing: 10
+
+            BoxLayout:
+                size_hint_y: 1
+                orientation: 'vertical'
+                spacing: 10
+                padding: 30
+
+                Label:
+                    id: isolabel
+                    size_hint_y: 0.2
+#                    size_hint: (None, None)
+                    font_size: stnd_font
+                    size: self.texture_size
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.size
+    #                markup: True
+                    color: C(hex_black)
+                Label:
+                    size_hint_y: 0.2
+                    id: pcnodelabel
+#                    size_hint: (None, None)
+                    font_size: stnd_font
+                    size: self.texture_size
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.size
+    #                markup: True
+                    color: C(hex_black)
+                Label:
+                    size_hint_y: 0.8
+                    id: histdatlabel
+#                    size_hint: (None, None)
+                    font_size: stnd_font
+                    size: self.texture_size
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.size
+    #                markup: True
+                    color: C(hex_black)
+
+            BoxLayout:
+                size_hint_y: 1
+                orientation: 'vertical'
+                spacing: 10
+                padding: 30
+
+                Label:
+                    id: revstreamlabel
+                    size_hint_y: 0.3
+#                    size_hint: (None, None)
+                    font_size: stnd_font
+                    size: self.texture_size
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.size
+    #                markup: True
+                    color: C(hex_black)
+                Label:
+                    id: esdevlabel
+                    size_hint_y: 0.9
+#                    size_hint: (None, None)
+                    font_size: stnd_font
+                    size: self.texture_size
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.size
+    #                markup: True
+                    color: C(hex_black)
+
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'bottom'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
+
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
