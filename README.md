@@ -1,6 +1,8 @@
 <img src="es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
 # QuESt Equity: Optimizing Energy Storage
+[![Build Status](https://travis-ci.com/rconcep/snl-quest.svg?branch=master)](https://travis-ci.com/rconcep/snl-quest)
+
 Current release version: 1.0
 
 Release date: July, 2023
@@ -261,6 +263,6 @@ Byrne, Raymond H., et al. "Energy management and optimization methods for grid e
 
 Byrne, Raymond H., and César A. Silva-Monroy. "Potential revenue from electrical energy storage in ERCOT: The impact of location and recent trends." 2015 IEEE Power & Energy Society General Meeting. IEEE, 2015.
 [Available online](https://www.osti.gov/servlets/purl/1244909).
-
+#   s n l - q u e s t - e q u i t y 
  
  
