@@ -1,8 +1,6 @@
 <img src="es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
 # QuESt Equity: Optimizing Energy Storage
-[![Build Status](https://travis-ci.com/rconcep/snl-quest.svg?branch=master)](https://travis-ci.com/rconcep/snl-quest)]
-
 Current release version: 1.0
 
 Release date: July, 2023
