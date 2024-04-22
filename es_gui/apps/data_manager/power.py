@@ -503,11 +503,11 @@ class PowerPlantSearchScreen(Screen):
                 request_content['NameplateCapacity'] = float(
                     Plants_spreadsheet.cell(row=row_number, column=29).value)
                 # Plant FIPS state code 18
-                request_content['Plant_FIPS_state_code'] = Plants_spreadsheet.cell(
-                    row=row_number, column=18).value
+                request_content['Plant_FIPS_state_code'] = str(Plants_spreadsheet.cell(
+                    row=row_number, column=18).value)
                 # Plant FIPS county code 19
-                request_content['Plant_FIPS_county_code'] = Plants_spreadsheet.cell(
-                    row=row_number, column=19).value
+                request_content['Plant_FIPS_county_code'] = str(Plants_spreadsheet.cell(
+                    row=row_number, column=19).value)
                 # Plant capacity factor 28
                 request_content['CapacityFactor'] = float(
                     Plants_spreadsheet.cell(row=row_number, column=28).value)
@@ -630,8 +630,8 @@ class PowerPlantSearchScreen(Screen):
             api_post_EmissionsUpdate = 'https://cobraapi.app.cloud.gov/api/EmissionsUpdate'
             api_get_Result = 'https://cobraapi.app.cloud.gov/api/Result/'
 
-            fipscodes = request_content['Plant_FIPS_state_code'] + \
-                request_content['Plant_FIPS_county_code']
+            fipscodes = str(request_content['Plant_FIPS_state_code']) + str(request_content['Plant_FIPS_county_code'])
+            
             # tier 1 applys to power plants due to the elivation and despersion of emmision
             # tier 1 emissions are commmonly much less than calculated powerplant emissions. 
             # The analysis performs the polution value calculation in reverse adding polution to the system and multiplying the value result by -1

@@ -19,11 +19,13 @@ from __future__ import absolute_import
 # This is for setting the window parameters like the initial size. Goes before any other import statements.
 from kivy.config import Config, ConfigParser
 
-Config.set('graphics', 'height', '900')
-Config.set('graphics', 'width', '1600')
-Config.set('graphics', 'minimum_height', '900')
-Config.set('graphics', 'minimum_width', '1600')
+Config.set('graphics', 'height', '600')
+Config.set('graphics', 'width', '1280')
+# Config.set('graphics', 'minimum_height', '900')
+# Config.set('graphics', 'minimum_width', '1600')
+#Config.set('graphics', 'borderless', '1')
 Config.set('graphics', 'resizable', '1')
+# Config.set('graphics', 'fullscreen', 'auto')
 Config.set('kivy', 'desktop', 1)
 Config.set('kivy', 'exit_on_escape', '0')  # disables Esc to quit
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')  # disables red dot creation
