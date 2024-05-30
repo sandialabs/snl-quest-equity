@@ -20,8 +20,10 @@ from kivy.uix.modalview import ModalView
 from kivy.core.window import Window
 
 from es_gui.resources.widgets.common import EquityResultsViewer,PALETTE, rgba_to_fraction
+home_dir = os.path.dirname(__file__)
+base_dir = os.path.join(home_dir, "..", "..", "..")
 
-STATIC_HOME = 'es_gui/apps/data_manager/_static'
+STATIC_HOME = os.path.join(base_dir,'es_gui', 'apps', 'data_manager', '_static')
 data_file_name = 'disadvantaged_pop_by_county_2010.csv'
 GEOJSON = "geojson-counties-fips.json"
 

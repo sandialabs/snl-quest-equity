@@ -416,7 +416,7 @@ class PowerPlantSearchScreen(Screen):
                             # print(api_query)
                             http_request[unit][quarter] = req.get(api_query,
                                                                   proxies=proxy_settings,
-                                                                  timeout=10,
+                                                                  timeout=30,
                                                                   verify=ssl_verify,
                                                                   stream=True)
 
@@ -503,11 +503,11 @@ class PowerPlantSearchScreen(Screen):
                 request_content['NameplateCapacity'] = float(
                     Plants_spreadsheet.cell(row=row_number, column=29).value)
                 # Plant FIPS state code 18
-                request_content['Plant_FIPS_state_code'] = str(Plants_spreadsheet.cell(
-                    row=row_number, column=18).value)
+                request_content['Plant_FIPS_state_code'] = Plants_spreadsheet.cell(
+                    row=row_number, column=18).value
                 # Plant FIPS county code 19
-                request_content['Plant_FIPS_county_code'] = str(Plants_spreadsheet.cell(
-                    row=row_number, column=19).value)
+                request_content['Plant_FIPS_county_code'] = Plants_spreadsheet.cell(
+                    row=row_number, column=19).value
                 # Plant capacity factor 28
                 request_content['CapacityFactor'] = float(
                     Plants_spreadsheet.cell(row=row_number, column=28).value)
@@ -630,207 +630,223 @@ class PowerPlantSearchScreen(Screen):
             api_post_EmissionsUpdate = 'https://cobraapi.app.cloud.gov/api/EmissionsUpdate'
             api_get_Result = 'https://cobraapi.app.cloud.gov/api/Result/'
 
-            fipscodes = str(request_content['Plant_FIPS_state_code']) + str(request_content['Plant_FIPS_county_code'])
+            state_code = str(request_content['Plant_FIPS_state_code'])
+            if len(state_code)<2:
+                state_code = '0' + state_code
+            county_code = str(request_content['Plant_FIPS_county_code'])
+            if len(county_code)<3:
+                county_code = '0' + county_code
+                if len(county_code)<3:
+                    county_code = '0' + county_code
+            
+            fipscodes = state_code + county_code
+            print(fipscodes)
             
             # tier 1 applys to power plants due to the elivation and despersion of emmision
             # tier 1 emissions are commmonly much less than calculated powerplant emissions. 
             # The analysis performs the polution value calculation in reverse adding polution to the system and multiplying the value result by -1
             tiers = "1"
             
-            try:
-                with requests.Session() as req:
-                    # request a simulation token
-                    http_request_token = req.get(api_query_token,
-                                                proxies=proxy_settings,
-                                                timeout=30,
-                                                verify=ssl_verify,
-                                                stream=True)
-                    request_content_token = http_request_token.json()
-                    token = request_content_token['value']
-
-                    # get the baseline emisions for the state / county where the power plant is located
-                    api_query_SummarizedControlEmissions_send = api_query_SummarizedControlEmissions + \
-                        'token=' + token + '&fipscodes=' + fipscodes + '&tiers=' + tiers
-
-                    http_request_BE = req.get(api_query_SummarizedControlEmissions_send,
+            #try:
+            with requests.Session() as req:
+                # request a simulation token
+                http_request_token = req.get(api_query_token,
                                             proxies=proxy_settings,
-                                            timeout=10,
+                                            timeout=30,
                                             verify=ssl_verify,
                                             stream=True)
-
-                    request_content_json = http_request_BE.json()
-
-                    if not request_content_json == {'baseline': [], 'control': []}:
-                        baseline = request_content_json['baseline'][0]
-                        payload = request_content_json['baseline'][0]
-
-                        # increase the baseline by the calculated powerplant polution
-                        print('tier : ' + tiers)
-                        print('Baseline NOX  : ' + str(baseline['NO2']))
-                        print('Baseline SO2  : ' + str(baseline['SO2']))
-                        print('Baseline PM25 : ' + str(baseline['PM25']))
-                        print('Peaker NOX  : ' +
-                            str(request_content['NOx_emissions']))
-                        print('Peaker SO2  : ' +
-                            str(request_content['SO2_emissions']))
-                        print('Peaker PM25 : ' +
-                            str(request_content['PM25_emissions']))
-
-                        payload['NO2'] = max(
-                            [0, baseline['NO2'] + request_content['NOx_emissions']])
-                        payload['SO2'] = max(
-                            [0, baseline['SO2'] + request_content['SO2_emissions']])
-                        payload['PM25'] = max(
-                            [0, baseline['PM25'] + request_content['PM25_emissions']])
-
-                        print('Final NOX  : ' + str(payload['NO2']))
-                        print('Final SO2  : ' + str(payload['SO2']))
-                        print('Final PM25 : ' + str(payload['PM25']))
-
-                        request_body = {
-                            "spec": {
-                                "fipscodes": [
-                                    fipscodes,
-                                ],
-                                "tiers": tiers,
-                                "token": token
-                            },
-                            "payload": payload
-                        }
-
-                        http_request_post_EmissionsUpdate = req.post(api_post_EmissionsUpdate,
-                                                                    json=request_body,
-                                                                    proxies=proxy_settings,
-                                                                    timeout=30,
-                                                                    verify=ssl_verify,
-                                                                    stream=True)
-
-                        api_get_Result = api_get_Result + token + '/00'
-                        http_request_post_Result = req.get(api_get_Result,
-                                                        proxies=proxy_settings,
-                                                        timeout=30,
-                                                        verify=ssl_verify,
-                                                        stream=True)
-
-                        request_content['COBRA_results'] = http_request_post_Result.json()
-
-                # Determin how much of the health impacts of the peaker
-                # pollution  is accrued by 1) disadvantage communities and 2) by
-                # people with low income (<200% poverty)
-                logging.info(
-                    'PowerPlantDM: loading justice40 community data to calculate pollution impact equity')
-                disadvantaged_population_file = os.path.join(
-                    STATIC_HOME, 'disadvantaged_pop_by_county_2010.csv')
-                pop = {}
-                dis = {}
-                low = {}
-                total_pop = 0
-                total_dis = 0
-                total_low = 0
-                header = True
-                with open(disadvantaged_population_file, newline='') as csvfile:
-                    csv_file = csv.reader(csvfile, delimiter=',')
-                    for row in csv_file:
-                        if not header:
-                            if len(row[0]) == 4:
-                                ID = '0' + row[0]
-                            else:
-                                ID = row[0]
-                            pop[ID] = float(row[1])
-                            dis[ID] = float(row[2])
-                            low[ID] = float(row[3])
-                            total_pop = total_pop + pop[ID]
-                            total_dis = total_dis + pop[ID]*dis[ID]
-                            total_low = total_low + pop[ID]*low[ID]
-                        header = False
-                print(pop)
-                logging.info('PowerPlantDM: calculating pollution impact equity')
-                l_value_to_dis_per_county = []
-                h_value_to_dis_per_county = []
-                l_value_to_low_per_county = []
-                h_value_to_low_per_county = []
-
-                l_total_value = -request_content['COBRA_results']['Summary']['TotalHealthBenefitsValue_low']
-                h_total_value = -request_content['COBRA_results']['Summary']['TotalHealthBenefitsValue_high']
                 
-                ben_frac = {}
-                max_frac = 0
-                for impact in request_content['COBRA_results']['Impacts']:
-                    FIPS = impact['FIPS']
-                    # Shannon County, SD (FIPS code = 46113) was renamed Oglala Lakota County and assigned anew FIPS code (46102) effective in 2014.
-                    if FIPS == '46102':
-                        FIPS = '46113'
-                    LV = -impact['C__Total_Health_Benefits_Low_Value']
-                    HV = -impact['C__Total_Health_Benefits_High_Value']
-                    ben_frac[FIPS] = HV/h_total_value
-                    if ben_frac[FIPS] > max_frac:
-                        max_frac = ben_frac[FIPS]
-                    l_value_to_dis_per_county.append(dis[FIPS]*LV)
-                    h_value_to_dis_per_county.append(dis[FIPS]*HV)
-                    l_value_to_low_per_county.append(low[FIPS]*LV)
-                    h_value_to_low_per_county.append(low[FIPS]*HV)
+                request_content_token = http_request_token.json()
+                
+                token = request_content_token['value']
+                
+                # get the baseline emisions for the state / county where the power plant is located
+                
+                api_query_SummarizedControlEmissions_send = api_query_SummarizedControlEmissions + \
+                    'token=' + token + '&fipscodes=' + fipscodes + '&tiers=' + tiers
+                
+                http_request_BE = req.get(api_query_SummarizedControlEmissions_send,
+                                        proxies=proxy_settings,
+                                        timeout=30,
+                                        verify=ssl_verify,
+                                        stream=True)
 
-                #print('low estemate of total health benfits  : $' + str(l_total_value))
-                #print('high estemate of total health benfits : $' + str(h_total_value))
-                #print('% of total population in disadvantaged comunities :' + str(total_dis/total_pop))
-                #print('% of total health benfits to disadvantaged comunities :' + str(sum(h_value_to_dis_per_county)/h_total_value))
-                #print('% of total population that is low income (<200% of poverty):' + str(total_low/total_pop))
-                #print('% of total health benfits to low income (<200% of poverty):' + str(sum(h_value_to_low_per_county)/h_total_value))
-                request_content['health_impact_equity'] = {}
-                request_content['health_impact_equity']['total_population'] = total_pop
-                request_content['health_impact_equity']['total_disadvantaged_population'] = total_dis
-                request_content['health_impact_equity']['total_low_income_population'] = total_low
-                request_content['health_impact_equity']['disadvantaged_population_fraction'] = total_dis/total_pop
-                request_content['health_impact_equity']['low_income_population_fraction'] = total_low/total_pop
-                request_content['health_impact_equity']['total_impact_on_disadvantaged_population_low'] = sum(
-                    l_value_to_dis_per_county)
-                request_content['health_impact_equity']['total_impact_on_disadvantaged_population_high'] = sum(
-                    h_value_to_dis_per_county)
-                request_content['health_impact_equity']['total_impact_on_low_income_population_low'] = sum(
-                    l_value_to_low_per_county)
-                request_content['health_impact_equity']['total_impact_on_low_income_population_high'] = sum(
-                    h_value_to_low_per_county)
-                request_content['health_impact_equity']['impact_on_disadvantaged_population_fraction'] = sum(
-                    h_value_to_dis_per_county)/h_total_value
-                request_content['health_impact_equity']['impact_on_low_income_population_fraction'] = sum(
-                    h_value_to_low_per_county)/h_total_value
+                request_content_json = http_request_BE.json()
 
-            except:
+                if not request_content_json == {'baseline': [], 'control': []}:
+                    baseline = request_content_json['baseline'][0]
+                    payload = request_content_json['baseline'][0]
+                    #print(baseline)
+                    # increase the baseline by the calculated powerplant polution
+                    print('tier : ' + tiers)
+                    print('Baseline NOX  : ' + str(baseline['NOx']))
+                    print('Baseline SO2  : ' + str(baseline['SO2']))
+                    print('Baseline PM25 : ' + str(baseline['PM25']))
+                    print('Peaker NOX  : ' +
+                        str(request_content['NOx_emissions']))
+                    print('Peaker SO2  : ' +
+                        str(request_content['SO2_emissions']))
+                    print('Peaker PM25 : ' +
+                        str(request_content['PM25_emissions']))
+
+                    payload['NOx'] = max(
+                        [0, baseline['NOx'] + request_content['NOx_emissions']])
+                    payload['SO2'] = max(
+                        [0, baseline['SO2'] + request_content['SO2_emissions']])
+                    payload['PM25'] = max(
+                        [0, baseline['PM25'] + request_content['PM25_emissions']])
+
+                    print('Final NOX  : ' + str(payload['NOx']))
+                    print('Final SO2  : ' + str(payload['SO2']))
+                    print('Final PM25 : ' + str(payload['PM25']))
+
+                    request_body = {
+                        "spec": {
+                            "fipscodes": [
+                                fipscodes,
+                            ],
+                            "tiers": tiers,
+                            "token": token
+                        },
+                        "payload": payload
+                    }
+
+                    http_request_post_EmissionsUpdate = req.post(api_post_EmissionsUpdate,
+                                                                json=request_body,
+                                                                proxies=proxy_settings,
+                                                                timeout=30,
+                                                                verify=ssl_verify,
+                                                                stream=True)
+
+                    api_get_Result = api_get_Result + token + '/00'
+                    http_request_post_Result = req.get(api_get_Result,
+                                                    proxies=proxy_settings,
+                                                    timeout=30,
+                                                    verify=ssl_verify,
+                                                    stream=True)
+
+                    request_content['COBRA_results'] = http_request_post_Result.json()
+                
+                else:
+                    print("COBRA returned empty data set for baseline emisssions")
+
+            # Determin how much of the health impacts of the peaker
+            # pollution  is accrued by 1) disadvantage communities and 2) by
+            # people with low income (<200% poverty)
+            logging.info(
+                'PowerPlantDM: loading justice40 community data to calculate pollution impact equity')
+            disadvantaged_population_file = os.path.join(
+                STATIC_HOME, 'disadvantaged_pop_by_county_2010.csv')
+            pop = {}
+            dis = {}
+            low = {}
+            total_pop = 0
+            total_dis = 0
+            total_low = 0
+            header = True
+            with open(disadvantaged_population_file, newline='') as csvfile:
+                csv_file = csv.reader(csvfile, delimiter=',')
+                for row in csv_file:
+                    if not header:
+                        if len(row[0]) == 4:
+                            ID = '0' + row[0]
+                        else:
+                            ID = row[0]
+                        pop[ID] = float(row[1])
+                        dis[ID] = float(row[2])
+                        low[ID] = float(row[3])
+                        total_pop = total_pop + pop[ID]
+                        total_dis = total_dis + pop[ID]*dis[ID]
+                        total_low = total_low + pop[ID]*low[ID]
+                    header = False
+            print(pop)
+            logging.info('PowerPlantDM: calculating pollution impact equity')
+            l_value_to_dis_per_county = []
+            h_value_to_dis_per_county = []
+            l_value_to_low_per_county = []
+            h_value_to_low_per_county = []
+
+            l_total_value = -request_content['COBRA_results']['Summary']['TotalHealthBenefitsValue_low']
+            h_total_value = -request_content['COBRA_results']['Summary']['TotalHealthBenefitsValue_high']
+            
+            ben_frac = {}
+            max_frac = 0
+            for impact in request_content['COBRA_results']['Impacts']:
+                FIPS = impact['FIPS']
+                # Shannon County, SD (FIPS code = 46113) was renamed Oglala Lakota County and assigned anew FIPS code (46102) effective in 2014.
+                if FIPS == '46102':
+                    FIPS = '46113'
+                LV = -impact['C__Total_Health_Benefits_Low_Value']
+                HV = -impact['C__Total_Health_Benefits_High_Value']
+                ben_frac[FIPS] = HV/h_total_value
+                if ben_frac[FIPS] > max_frac:
+                    max_frac = ben_frac[FIPS]
+                l_value_to_dis_per_county.append(dis[FIPS]*LV)
+                h_value_to_dis_per_county.append(dis[FIPS]*HV)
+                l_value_to_low_per_county.append(low[FIPS]*LV)
+                h_value_to_low_per_county.append(low[FIPS]*HV)
+
+            #print('low estemate of total health benfits  : $' + str(l_total_value))
+            #print('high estemate of total health benfits : $' + str(h_total_value))
+            #print('% of total population in disadvantaged comunities :' + str(total_dis/total_pop))
+            #print('% of total health benfits to disadvantaged comunities :' + str(sum(h_value_to_dis_per_county)/h_total_value))
+            #print('% of total population that is low income (<200% of poverty):' + str(total_low/total_pop))
+            #print('% of total health benfits to low income (<200% of poverty):' + str(sum(h_value_to_low_per_county)/h_total_value))
+            request_content['health_impact_equity'] = {}
+            request_content['health_impact_equity']['total_population'] = total_pop
+            request_content['health_impact_equity']['total_disadvantaged_population'] = total_dis
+            request_content['health_impact_equity']['total_low_income_population'] = total_low
+            request_content['health_impact_equity']['disadvantaged_population_fraction'] = total_dis/total_pop
+            request_content['health_impact_equity']['low_income_population_fraction'] = total_low/total_pop
+            request_content['health_impact_equity']['total_impact_on_disadvantaged_population_low'] = sum(
+                l_value_to_dis_per_county)
+            request_content['health_impact_equity']['total_impact_on_disadvantaged_population_high'] = sum(
+                h_value_to_dis_per_county)
+            request_content['health_impact_equity']['total_impact_on_low_income_population_low'] = sum(
+                l_value_to_low_per_county)
+            request_content['health_impact_equity']['total_impact_on_low_income_population_high'] = sum(
+                h_value_to_low_per_county)
+            request_content['health_impact_equity']['impact_on_disadvantaged_population_fraction'] = sum(
+                h_value_to_dis_per_county)/h_total_value
+            request_content['health_impact_equity']['impact_on_low_income_population_fraction'] = sum(
+                h_value_to_low_per_county)/h_total_value
+
+            '''except:
                 logging.info('PowerPlantDM: An error has occurred with the COBRA API.')
                 popup = WarningPopup()
                 popup.title = 'Error : '
                 popup.popup_text.text = 'An error has occurred with the COBRA API.'
-                popup.open()
-            else:
-                # Strip non-alphanumeric chars from given name for filename.
-                delchars = ''.join(c for c in map(
-                    chr, range(256)) if not c.isalnum())
-                outname = outname.translate({ord(i): None for i in delchars})
+                popup.open()'''
+            #else:
+            # Strip non-alphanumeric chars from given name for filename.
+            delchars = ''.join(c for c in map(
+                chr, range(256)) if not c.isalnum())
+            outname = outname.translate({ord(i): None for i in delchars})
 
-                # Save.
-                destination_dir = os.path.join(DATA_HOME, 'power_plant')
-                os.makedirs(destination_dir, exist_ok=True)
-                destination_file = os.path.join(destination_dir, outname + '.json')
+            # Save.
+            destination_dir = os.path.join(DATA_HOME, 'power_plant')
+            os.makedirs(destination_dir, exist_ok=True)
+            destination_file = os.path.join(destination_dir, outname + '.json')
+
+            logging.info(
+                'PowerPlantDM: saving power plant data file to: ' + destination_file)
+            if not os.path.exists(destination_file):
+                with open(destination_file, 'w') as outfile:
+                    json.dump(request_content, outfile)
 
                 logging.info(
-                    'PowerPlantDM: saving power plant data file to: ' + destination_file)
-                if not os.path.exists(destination_file):
-                    with open(destination_file, 'w') as outfile:
-                        json.dump(request_content, outfile)
+                    'PowerPlantDM: power plant data successfully saved.')
 
-                    logging.info(
-                        'PowerPlantDM: power plant data successfully saved.')
-
-                    popup = WarningPopup()
-                    popup.title = 'Success!'
-                    popup.popup_text.text = 'Power plant data successfully saved.'
-                    popup.open()
-                else:
-                    # File already exists with same name.
-                    popup = WarningPopup()
-                    popup.title = 'Error : '
-                    popup.popup_text.text = 'File already exists with same name.'
-                    popup.open()
+                popup = WarningPopup()
+                popup.title = 'Success!'
+                popup.popup_text.text = 'Power plant data successfully saved.'
+                popup.open()
+            else:
+                # File already exists with same name.
+                popup = WarningPopup()
+                popup.title = 'Error : '
+                popup.popup_text.text = 'File already exists with same name.'
+                popup.open()
             
         finally:
             self.save_button.disabled = False

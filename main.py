@@ -70,17 +70,17 @@ from es_gui.apps.equity.results_viewer import PowerPlantResultsViewer
 
 # Font registration.
 LabelBase.register(name='Exo 2',
-                   fn_regular=os.path.join('es_gui', 'resources', 'fonts', 'Exo_2', 'Exo2-Regular.ttf'),
-                   fn_bold=os.path.join('es_gui', 'resources', 'fonts', 'Exo_2', 'Exo2-Bold.ttf'),
-                   fn_italic=os.path.join('es_gui', 'resources', 'fonts', 'Exo_2', 'Exo2-Italic.ttf'))
+                   fn_regular=os.path.join(dirname,'es_gui', 'resources', 'fonts', 'Exo_2', 'Exo2-Regular.ttf'),
+                   fn_bold=os.path.join(dirname, 'es_gui', 'resources', 'fonts', 'Exo_2', 'Exo2-Bold.ttf'),
+                   fn_italic=os.path.join(dirname, 'es_gui', 'resources', 'fonts', 'Exo_2', 'Exo2-Italic.ttf'))
 
 LabelBase.register(name='Open Sans',
-                   fn_regular=os.path.join('es_gui', 'resources', 'fonts', 'Open_Sans', 'OpenSans-Regular.ttf'),
-                   fn_bold=os.path.join('es_gui', 'resources', 'fonts', 'Open_Sans', 'OpenSans-Bold.ttf'),
-                   fn_italic=os.path.join('es_gui', 'resources', 'fonts', 'Open_Sans', 'OpenSans-Italic.ttf'))
+                   fn_regular=os.path.join(dirname, 'es_gui', 'resources', 'fonts', 'Open_Sans', 'OpenSans-Regular.ttf'),
+                   fn_bold=os.path.join(dirname, 'es_gui', 'resources', 'fonts', 'Open_Sans', 'OpenSans-Bold.ttf'),
+                   fn_italic=os.path.join(dirname, 'es_gui', 'resources', 'fonts', 'Open_Sans', 'OpenSans-Italic.ttf'))
 
 LabelBase.register(name='Modern Pictograms',
-                   fn_regular=os.path.join('es_gui', 'resources', 'fonts', 'modernpictograms', 'ModernPictograms.ttf'))
+                   fn_regular=os.path.join(dirname, 'es_gui', 'resources', 'fonts', 'modernpictograms', 'ModernPictograms.ttf'))
 
 
 class IndexScreen(Screen):
@@ -106,11 +106,11 @@ class IndexScreen(Screen):
         slide_05_text = "Looking for more help? Check the navigation bar while in each QuESt application for a 'help' button to open an information carousel like this one for application-specific help."
 
         slides = [
-            (os.path.join("es_gui", "resources", "help_views", "index", "01.png"), slide_01_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "02.png"), slide_02_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "04.png"), slide_03_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "03.png"), slide_04_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "05.png"), slide_05_text),
+            (os.path.join(dirname, "es_gui", "resources", "help_views", "index", "01.png"), slide_01_text),
+            (os.path.join(dirname, "es_gui", "resources", "help_views", "index", "02.png"), slide_02_text),
+            (os.path.join(dirname, "es_gui", "resources", "help_views", "index", "04.png"), slide_03_text),
+            (os.path.join(dirname, "es_gui", "resources", "help_views", "index", "03.png"), slide_04_text),
+            (os.path.join(dirname, "es_gui", "resources", "help_views", "index", "05.png"), slide_05_text),
         ]
 
         help_carousel_view.add_slides(slides)

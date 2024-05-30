@@ -16,7 +16,8 @@ from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty
 
 from es_gui.resources.widgets.common import LoadingModalView,WarningPopup
-
+home_dir = os.path.dirname(__file__)
+base_dir = os.path.join(home_dir, "..", "..", "..")
 
 DATA_HOME = 'data'
 
@@ -477,7 +478,7 @@ class DataManager(EventDispatcher):
         if 'LBMP' in os.listdir(nyiso_root):
             nyiso_data_bank['LBMP'] = {}
 
-            pathf_nodeszones = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_nyiso.csv')
+            pathf_nodeszones = os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'nodes_nyiso.csv')
             df_nodeszones = pd.read_csv(pathf_nodeszones, index_col=False)
 
             # Get zone and gen nodes.
@@ -634,7 +635,7 @@ class DataManager(EventDispatcher):
         if 'LMP' in os.listdir(spp_root):
             spp_data_bank['LMP'] = {}
 
-            pathf_nodes = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_spp.csv')
+            pathf_nodes = os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'nodes_spp.csv')
             df_nodes = pd.read_csv(pathf_nodes, index_col=False)
 
             # Get location and bus nodes.
@@ -807,13 +808,13 @@ class DataManager(EventDispatcher):
         """Retrieves all available pricing nodes for the given market_area."""
         if market_area == 'ERCOT':
             # Reads static node ID list.
-            static_ercot_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_ercot.csv')
+            static_ercot_node_list = os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'nodes_ercot.csv')
 
             node_df = pd.read_csv(static_ercot_node_list)
             node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
         elif market_area == 'PJM':
             # Reads static node ID list.
-            static_pjm_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_pjm.csv')
+            static_pjm_node_list = os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'nodes_pjm.csv')
             node_df = pd.read_csv(static_pjm_node_list)
             node_mapping = {str(row[0]): '{nodename} ({nodeid})'.format(nodename=row[1], nodeid=row[0]) for row in zip(node_df['Node ID'], node_df['Node Name'])}
 
@@ -822,13 +823,13 @@ class DataManager(EventDispatcher):
             node_dict = {node_id: node_mapping.get(node_id, node_id) for node_id in node_id_list}
         elif market_area == 'MISO':
             # Reads static node ID list.
-            static_miso_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_miso.csv')
+            static_miso_node_list = os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'nodes_miso.csv')
 
             node_df = pd.read_csv(static_miso_node_list)
             node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
         elif market_area == 'NYISO':
             # Reads static node ID list.
-            static_nyiso_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_nyiso.csv')
+            static_nyiso_node_list = os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'nodes_nyiso.csv')
             node_df = pd.read_csv(static_nyiso_node_list)
             node_mapping = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
 
@@ -837,7 +838,7 @@ class DataManager(EventDispatcher):
             node_dict = {node_id: node_mapping.get(node_id, node_id) for node_id in node_id_list}
         elif market_area == 'ISONE':
             # Reads static node ID list.
-            static_isone_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_isone.csv')
+            static_isone_node_list = os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'nodes_isone.csv')
             node_df = pd.read_csv(static_isone_node_list, encoding="cp1252")
 
             node_dict = {str(row[0]): '{nodename} ({nodeid})'.format(nodename=row[1], nodeid=row[0]) for row in zip(node_df['Node ID'], node_df['Node Name'])}
@@ -847,13 +848,13 @@ class DataManager(EventDispatcher):
             node_dict = {node_id: node_dict.get(node_id, node_id) for node_id in node_id_list}
         elif market_area == 'SPP':
             # Reads static node ID list.
-            static_spp_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_spp.csv')
+            static_spp_node_list = os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'nodes_spp.csv')
 
             node_df = pd.read_csv(static_spp_node_list)
             node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
         elif market_area == 'CAISO':
             # Reads static node ID list.
-            static_caiso_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_caiso.csv')
+            static_caiso_node_list = os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'nodes_caiso.csv')
             node_df = pd.read_csv(static_caiso_node_list)
 
             node_id_list = self.data_bank['valuation']['CAISO']['LMP'].keys()
@@ -871,7 +872,7 @@ class DataManager(EventDispatcher):
         """Retrieves the available revenue streams for a given node in a given market_area based on downloaded data."""
         rev_stream_dict = {}
 
-        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'valuation_rev_streams.json'), 'r') as fp:
+        with open(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'valuation_rev_streams.json'), 'r') as fp:
             rev_stream_defs = json.load(fp).get(market_area, {})
 
         if market_area == 'ERCOT':
@@ -1139,19 +1140,19 @@ class DataManager(EventDispatcher):
         return return_dict
 
     def get_valuation_device_templates(self):
-        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'valuation_device_templates.json'), 'r') as fp:
+        with open(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'valuation_device_templates.json'), 'r') as fp:
             device_list = json.load(fp)
         
         return device_list
     
     def get_valuation_wizard_device_params(self):
-        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'valuation_device_params.json'), 'r') as fp:
+        with open(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'valuation_device_params.json'), 'r') as fp:
             device_params = json.load(fp)
         
         return device_params
     
     def get_valuation_model_params(self, market_area):
-        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'valuation_model_params.json'), 'r') as fp:
+        with open(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'valuation_model_params.json'), 'r') as fp:
             model_params_all = json.load(fp)
         
         model_params = model_params_all.get(market_area, {})
@@ -1160,35 +1161,35 @@ class DataManager(EventDispatcher):
     
     def get_btm_cost_savings_model_params(self):
         """Returns the list of dictionaries of parameters for the energy storage system model in the BTM cost savings application."""
-        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'btm_cost_savings_model_params.json'), 'r') as fp:
+        with open(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'btm_cost_savings_model_params.json'), 'r') as fp:
             model_params_all = json.load(fp)
 
         return model_params_all
 
     def get_power_plant_model_params(self):
         """Returns the list of dictionaries of parameters for the power plant system model from the EPA databse."""
-        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'power_plant_model_params.json'), 'r') as fp:
+        with open(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'power_plant_model_params.json'), 'r') as fp:
             model_params_all = json.load(fp)
 
         return model_params_all
     
     def get_equity_analysis_params(self):
         """Returns the list of dictionaries of parameters for the power plant system model from the EPA databse."""
-        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'equity_analysis_params.json'), 'r') as fp:
+        with open(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'equity_analysis_params.json'), 'r') as fp:
             model_params_all = json.load(fp)
 
         return model_params_all
     
     def get_pvwatts_search_params(self):
         """Returns the list of dictionaries of parameters for the PVWatts PV profile search."""
-        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'pvwatts_search_parameters.json'), 'r') as fp:
+        with open(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'pvwatts_search_parameters.json'), 'r') as fp:
             model_params_all = json.load(fp)
 
         return model_params_all
     
     def get_nsrdb_search_params(self):
         """Returns the list of dictionaries of parameters for the NSRDB search."""
-        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nsrdb_data_parameters.json'), 'r') as fp:
+        with open(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'nsrdb_data_parameters.json'), 'r') as fp:
             model_params_all = json.load(fp)
 
         return model_params_all
@@ -1309,23 +1310,23 @@ class DataManager(EventDispatcher):
         
     def get_tech_selection_params(self):
         """Returns the dictionary of parameters (user selections) for the technology selection application."""
-        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'tech_selection_params.json'), 'r') as fp:
+        with open(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'tech_selection_params.json'), 'r') as fp:
             model_params_all = json.load(fp)
             
         return model_params_all
         
     def get_techs_db(self):
         """"""
-        return pd.read_excel(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'techs_Database.xlsx'), index_col='Storage technology')
+        return pd.read_excel(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'techs_Database.xlsx'), index_col='Storage technology')
         
     def get_applications_db(self):
         """"""
-        apps_db = pd.read_csv(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'applications_database.csv'), index_col=0)
+        apps_db = pd.read_csv(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'applications_database.csv'), index_col=0)
         return apps_db.sort_index()
         
     def get_tech_selection_all_options(self):
         """"""
-        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'tech_selection_all_options_names.csv')) as csvfile:
+        with open(os.path.join(base_dir, 'es_gui', 'apps', 'data_manager', '_static', 'tech_selection_all_options_names.csv')) as csvfile:
             reader = csv.reader(csvfile)
             all_options_names = {}
             for row in reader:
