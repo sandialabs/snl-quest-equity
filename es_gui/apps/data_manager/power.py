@@ -47,7 +47,10 @@ URL_PVWATTS = "https://developer.nrel.gov/api/pvwatts/v6.json?"
 
 PPNC_URL = 'https://www.epa.gov/sites/default/files/2021-05/power_plants_and_communities.xlsx'
 
-STATIC_HOME = 'es_gui/apps/data_manager/_static'
+home_dir = os.path.dirname(__file__)
+base_dir = os.path.join(home_dir, "..", "..", "..")
+
+STATIC_HOME = os.path.join(base_dir,'es_gui', 'apps', 'data_manager', '_static')
 
 
 class PowerPlantSearchScreen(Screen):

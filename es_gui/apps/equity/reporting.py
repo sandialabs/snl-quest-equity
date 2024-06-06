@@ -28,7 +28,13 @@ from kivy.clock import Clock
 from es_gui.proving_grounds.charts import BarChart, StackedBarChart, MultisetBarChart, PieChart, DonutChart, format_dollar_string
 from es_gui.resources.widgets.common import TWO_ABC_WIDTH, THREE_ABC_WIDTH, MyPopup, WarningPopup, TileButton, PALETTE, rgba_to_fraction, ReportScreen, WizardReportInterface, ReportChartToggle, WizardCompletePopup, ReportCompletePopup
 
-STATIC_HOME = 'es_gui/apps/data_manager/_static'
+
+
+home_dir = os.path.dirname(__file__)
+base_dir = os.path.join(home_dir, "..", "..", "..")
+
+STATIC_HOME = os.path.join(base_dir,'es_gui', 'apps', 'data_manager', '_static')
+#STATIC_HOME = 'es_gui/apps/data_manager/_static'
 GEOJSON = "geojson-counties-fips.json"
 
 def format_long_dollar_string(value):
@@ -563,7 +569,7 @@ class PeakerRepGenerateReportMenu(ModalView):
 
         self.sm.current = screen.name
 
-        chart_images_dir = os.path.join('results', 'equity', 'report', self.report_id, 'images')
+        chart_images_dir = os.path.join(base_dir, 'results', 'equity', 'report', self.report_id, 'images')
         os.makedirs(chart_images_dir, exist_ok=True)
 
         chart_save_location = os.path.join(chart_images_dir, 'chart_{n}.png'.format(n=screen.name))
@@ -696,10 +702,10 @@ class PeakerRepGenerateReportMenu(ModalView):
                 chart_list.append(chart_info)
                 chart_ix += 1
 
-        template_dir = os.path.join('es_gui', 'resources', 'report_templates')
+        template_dir = os.path.join(base_dir, 'es_gui', 'resources', 'report_templates')
         output_dir_name = self.report_id
 
-        output_dir = os.path.join('results', 'equity', 'report', output_dir_name)
+        output_dir = os.path.join(base_dir, 'results', 'equity', 'report', output_dir_name)
         os.makedirs(output_dir, exist_ok=True)
 
         executive_summaries = []
